@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#f4f1ea">
+    <title>Site Yönetimi | Uzm. Dr. Özgür Özbebit</title>
+    <link rel="stylesheet" href="/admin/admin.css">
+  </head>
+  <body>
+    <main class="admin-shell">
+      <header class="admin-header">
+        <div>
+          <p class="eyebrow">Güvenli yönetim</p>
+          <h1>İletişim bilgileri</h1>
+          <p>Değişiklikler önce önizlenir, onaydan sonra GitHub'a tek commit olarak gönderilir.</p>
+        </div>
+        <button class="quiet-button" type="button" data-logout hidden>Çıkış yap</button>
+      </header>
+
+      <section class="panel auth-panel" data-login-panel>
+        <form data-login-form>
+          <div>
+            <p class="eyebrow">Oturum aç</p>
+            <h2>Admin paneline giriş</h2>
+            <p>Vercel ortam değişkenlerinde tanımlanan yönetici parolasını girin.</p>
+          </div>
+          <label>
+            <span>Yönetici parolası</span>
+            <input type="password" name="password" autocomplete="current-password" required>
+          </label>
+          <button class="primary-button" type="submit">Giriş yap</button>
+        </form>
+      </section>
+
+      <section class="editor" data-editor hidden>
+        <form class="panel form-panel" data-contact-form>
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">İletişim</p>
+              <h2>Yayınlanacak bilgiler</h2>
+            </div>
+            <span class="status-pill" data-status>GitHub'dan okunuyor</span>
+          </div>
+
+          <div class="form-grid">
+            <label>
+              <span>Telefon</span>
+              <input type="tel" name="phone" autocomplete="tel" placeholder="+90 555 555 55 55" required>
+            </label>
+            <label>
+              <span>WhatsApp</span>
+              <input type="tel" name="whatsapp" autocomplete="tel" placeholder="+90 555 555 55 55">
+            </label>
+            <label>
+              <span>E-posta</span>
+              <input type="email" name="email" autocomplete="email" placeholder="info@example.com" required>
+            </label>
+            <label class="wide-field">
+              <span>Adres</span>
+              <textarea name="address" rows="3" autocomplete="street-address" required></textarea>
+            </label>
+            <label>
+              <span>Instagram bağlantısı</span>
+              <input type="url" name="instagram" placeholder="https://instagram.com/...">
+            </label>
+            <label>
+              <span>LinkedIn bağlantısı</span>
+              <input type="url" name="linkedin" placeholder="https://linkedin.com/in/...">
+            </label>
+          </div>
+
+          <div class="form-actions">
+            <button class="primary-button" type="submit" data-preview-button>Önizle</button>
+            <p>Önizleme, verileri doğrular ve hangi dosyaların değişeceğini gösterir.</p>
+          </div>
+        </form>
+
+        <aside class="panel preview-panel" data-preview-panel>
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Önizleme</p>
+              <h2>Sitede görünecek hali</h2>
+            </div>
+          </div>
+
+          <div class="contact-preview">
+            <a data-preview-phone>Telefon eklenmedi</a>
+            <a data-preview-whatsapp hidden>WhatsApp</a>
+            <a data-preview-email>E-posta eklenmedi</a>
+            <p data-preview-address>Adres eklenmedi</p>
+            <div class="social-preview">
+              <a data-preview-instagram hidden>Instagram</a>
+              <a data-preview-linkedin hidden>LinkedIn</a>
+            </div>
+          </div>
+
+          <div class="publish-box" data-publish-box hidden>
+            <p data-preview-summary></p>
+            <details>
+              <summary>Güncellenecek dosyaları göster</summary>
+              <ul data-affected-files></ul>
+            </details>
+            <label class="confirm-row">
+              <input type="checkbox" data-confirm>
+              <span>Önizlemeyi kontrol ettim ve bu bilgileri yayınlamak istiyorum.</span>
+            </label>
+            <button class="publish-button" type="button" data-publish disabled>Yayınla</button>
+            <p class="publish-note">Bu işlem GitHub deposunun ayarlı branch'ine commit atar. Vercel dağıtımı otomatik başlar.</p>
+          </div>
+        </aside>
+      </section>
+
+      <div class="toast" role="status" aria-live="polite" data-toast hidden></div>
+    </main>
+
+    <script src="/admin/admin.js" defer></script>
+  </body>
+</html>

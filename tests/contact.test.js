@@ -1,0 +1,84 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import {
+  extractContact,
+  normalizeContact,
+  publicContact,
+  updateContactBlock,
+} from "../api/_lib/contact.js";
+
+const validInput = {
+  phone: "0555 111 22 33",
+  whatsapp: "+90 555 444 33 22",
+  email: "INFO@EXAMPLE.COM",
+  address: "Yeni Mahalle, Didim / Aydın",
+  instagram: "instagram.com/ornek",
+  linkedin: "https://www.linkedin.com/in/ornek",
+};
+
+test("iletişim verisini normalize eder", () => {
+  const result = normalizeContact(validInput);
+  assert.equal(result.phoneHref, "tel:+905551112233");
+  assert.equal(result.whatsappHref, "https://wa.me/905554443322");
+  assert.equal(result.email, "info@example.com");
+  assert.equal(result.instagram, "https://instagram.com/ornek");
+  assert.equal(result.linkedin, "https://www.linkedin.com/in/ornek");
+});
+
+test("başında sıfır olmayan 10 haneli Türkiye numarasına ülke kodu ekler", () => {
+  const result = normalizeContact({ ...validInput, phone: "555 111 22 33" });
+  assert.equal(result.phoneHref, "tel:+905551112233");
+});
+
+test("güvenilmeyen sosyal medya alan adını reddeder", () => {
+  assert.throws(
+    () => normalizeContact({ ...validInput, instagram: "https://example.com/fake" }),
+    /Instagram bağlantısı/,
+  );
+});
+
+test("HTML veri bloğunu, görünür alanları ve Physician şemasını günceller", () => {
+  const html = `<!doctype html>
+<head>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Physician","email":"old@example.com"}]}</script>
+</head>
+<body>
+<a data-contact-href="phone" data-contact-text="phone" href="tel:+900">Eski telefon</a>
+<a data-contact-href="whatsapp" data-contact-visible="whatsapp" href="#" hidden>WhatsApp</a>
+<span data-contact-text="address">Eski adres</span>
+</body>`;
+  const contact = normalizeContact(validInput);
+  const updated = updateContactBlock(html, contact);
+
+  assert.match(updated, /SITE_CONTACT_START/);
+  assert.match(updated, /href="tel:\+905551112233"/);
+  assert.match(updated, />0555 111 22 33<\/a>/);
+  assert.match(updated, /href="https:\/\/wa\.me\/905554443322"/);
+  assert.doesNotMatch(updated, /data-contact-visible="whatsapp"[^>]*hidden/);
+  assert.match(updated, /Yeni Mahalle, Didim \/ Aydın/);
+
+  const schema = JSON.parse(updated.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
+  const physician = schema["@graph"][0];
+  assert.equal(physician.email, "info@example.com");
+  assert.equal(physician.telephone, "0555 111 22 33");
+  assert.deepEqual(physician.sameAs, [
+    "https://instagram.com/ornek",
+    "https://www.linkedin.com/in/ornek",
+  ]);
+
+  assert.deepEqual(publicContact(extractContact(updated)), {
+    phone: "0555 111 22 33",
+    whatsapp: "+90 555 444 33 22",
+    email: "info@example.com",
+    address: "Yeni Mahalle, Didim / Aydın",
+    instagram: "https://instagram.com/ornek",
+    linkedin: "https://www.linkedin.com/in/ornek",
+  });
+});
+
+test("boş sosyal bağlantıları gizli tutar", () => {
+  const html = `<head></head><a data-contact-href="instagram" data-contact-visible="instagram" href="https://instagram.com/test">Instagram</a>`;
+  const contact = normalizeContact({ ...validInput, instagram: "", linkedin: "", whatsapp: "" });
+  const updated = updateContactBlock(html, contact);
+  assert.match(updated, /data-contact-visible="instagram"[^>]*hidden/);
+});
