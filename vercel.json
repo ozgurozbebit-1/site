@@ -8,6 +8,14 @@
     {
       "source": "/admin/",
       "destination": "/admin.html"
+    },
+    {
+      "source": "/admin/content",
+      "destination": "/admin/content/index.html"
+    },
+    {
+      "source": "/admin/content/",
+      "destination": "/admin/content/index.html"
     }
   ],
   "headers": [

@@ -56,6 +56,65 @@ button {
   margin-bottom: 28px;
 }
 
+.admin-tabs {
+  display: flex;
+  gap: 8px;
+  margin: -10px 0 28px;
+  border-bottom: 1px solid var(--line);
+}
+
+.admin-tabs a {
+  border-radius: 8px 8px 0 0;
+  padding: 12px 18px;
+  color: var(--muted);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.admin-tabs a:hover,
+.admin-tabs a.is-active {
+  background: var(--white);
+  color: var(--sage);
+}
+
+.admin-tabs a.is-active {
+  border: 1px solid var(--line);
+  border-bottom-color: var(--white);
+  margin-bottom: -1px;
+}
+
+.content-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 28px;
+  border-radius: 14px;
+  background: var(--sage);
+  box-shadow: var(--shadow);
+  padding: clamp(24px, 4vw, 38px);
+  color: #fff;
+}
+
+.content-entry h2,
+.content-entry p {
+  color: #fff;
+}
+
+.content-entry p {
+  margin-bottom: 0;
+}
+
+.content-entry-button {
+  flex: 0 0 auto;
+  border-radius: 9px;
+  background: var(--clay);
+  padding: 15px 20px;
+  color: #fff;
+  font-weight: 850;
+  text-decoration: none;
+}
+
 h1,
 h2,
 p {
@@ -118,6 +177,14 @@ h2 {
 }
 
 .home-editor {
+  margin-top: 28px;
+}
+
+.social-content-panel {
+  margin-top: 28px;
+}
+
+.content-kit-panel {
   margin-top: 28px;
 }
 
@@ -293,6 +360,130 @@ textarea {
   font-weight: 800;
 }
 
+.social-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: end;
+  margin-top: 24px;
+}
+
+.social-draft {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 26px;
+}
+
+.social-draft article {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  padding: 18px;
+}
+
+.social-draft h3 {
+  margin: 0 0 10px;
+  font-size: 16px;
+}
+
+.social-draft p {
+  margin: 0;
+  white-space: pre-line;
+}
+
+.social-draft .physician-note,
+.social-approval {
+  grid-column: 1 / -1;
+}
+
+.social-draft .physician-note {
+  border-color: rgba(181, 111, 76, 0.32);
+  background: rgba(181, 111, 76, 0.07);
+}
+
+.social-approval {
+  border-top: 1px solid var(--line);
+  padding-top: 20px;
+}
+
+.social-approval > p {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.content-kit {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 26px;
+}
+
+.content-kit article {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  padding: 18px;
+}
+
+.content-kit h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.content-kit pre {
+  max-height: 360px;
+  overflow: auto;
+  margin: 0;
+  color: var(--ink);
+  font: inherit;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.content-kit .wide-content,
+.content-export {
+  grid-column: 1 / -1;
+}
+
+.content-kit .physician-note {
+  border-color: rgba(181, 111, 76, 0.32);
+  background: rgba(181, 111, 76, 0.07);
+}
+
+.copy-button {
+  justify-self: start;
+  min-height: 38px;
+  padding: 7px 13px;
+}
+
+.copy-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.content-export {
+  border-top: 1px solid var(--line);
+  padding-top: 20px;
+}
+
+.content-export > p {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.export-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
 .publish-box {
   margin-top: 24px;
   border-top: 1px solid var(--line);
@@ -408,7 +599,9 @@ textarea {
 
 @media (max-width: 820px) {
   .editor,
-  .form-grid {
+  .form-grid,
+  .social-draft,
+  .content-kit {
     grid-template-columns: 1fr;
   }
 
@@ -419,6 +612,16 @@ textarea {
   .preview-panel {
     position: static;
   }
+
+  .social-draft .physician-note,
+  .social-approval {
+    grid-column: auto;
+  }
+
+  .content-kit .wide-content,
+  .content-export {
+    grid-column: auto;
+  }
 }
 
 @media (max-width: 560px) {
@@ -428,6 +631,8 @@ textarea {
   }
 
   .admin-header,
+  .content-entry,
+  .social-form,
   .panel-heading,
   .form-actions {
     align-items: stretch;
@@ -436,6 +641,10 @@ textarea {
 
   .admin-header .quiet-button {
     align-self: flex-start;
+  }
+
+  .content-entry-button {
+    text-align: center;
   }
 
   .primary-button {

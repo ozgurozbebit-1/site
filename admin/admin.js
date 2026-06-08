@@ -1,5 +1,7 @@
 const loginPanel = document.querySelector("[data-login-panel]");
 const loginForm = document.querySelector("[data-login-form]");
+const contentEntry = document.querySelector("[data-content-entry]");
+const contentLinks = document.querySelectorAll('a[href="/admin/content/"]');
 const editor = document.querySelector("[data-editor]");
 const contactForm = document.querySelector("[data-contact-form]");
 const logoutButton = document.querySelector("[data-logout]");
@@ -31,11 +33,36 @@ const homeResultCount = document.querySelector("[data-home-result-count]");
 const homeResultCommitLink = document.querySelector("[data-home-result-commit-link]");
 const homeResultVercelLink = document.querySelector("[data-home-result-vercel-link]");
 const homeResultProductionLink = document.querySelector("[data-home-result-production-link]");
+const socialEditor = document.querySelector("[data-social-editor]");
+const socialForm = document.querySelector("[data-social-form]");
+const socialStatus = document.querySelector("[data-social-status]");
+const socialGenerateButton = document.querySelector("[data-social-generate]");
+const socialDraftSection = document.querySelector("[data-social-draft]");
+const socialConfirm = document.querySelector("[data-social-confirm]");
+const socialApproveButton = document.querySelector("[data-social-approve]");
+const contentEditor = document.querySelector("[data-content-editor]");
+const contentForm = document.querySelector("[data-content-form]");
+const contentStatus = document.querySelector("[data-content-status]");
+const contentGenerateButton = document.querySelector("[data-content-generate]");
+const contentDraftSection = document.querySelector("[data-content-draft]");
+const contentConfirm = document.querySelector("[data-content-confirm]");
+const contentApproveButton = document.querySelector("[data-content-approve]");
+const contentExportActions = document.querySelector("[data-content-export-actions]");
+const contentCopyAllButton = document.querySelector("[data-content-copy-all]");
+const contentDownloadButton = document.querySelector("[data-content-download]");
 const toast = document.querySelector("[data-toast]");
 
 let approvedContact = null;
 let approvedHome = null;
+let socialDraft = null;
+let contentDraft = null;
 let toastTimer;
+
+for (const link of contentLinks) {
+  link.addEventListener("click", () => {
+    sessionStorage.setItem("admin:last-section", "content");
+  });
+}
 
 const fields = ["phone", "whatsapp", "email", "address", "instagram", "linkedin"];
 const homeFields = [
@@ -187,6 +214,76 @@ function renderHomePublishResult(body) {
   homePublishResult.hidden = false;
 }
 
+function renderSocialDraft(draft) {
+  document.querySelector("[data-social-instagram]").textContent = draft.instagram;
+  document.querySelector("[data-social-facebook]").textContent = draft.facebook;
+  document.querySelector("[data-social-linkedin]").textContent = draft.linkedin;
+  document.querySelector("[data-social-tiktok]").textContent = draft.tiktok;
+  document.querySelector("[data-social-hashtags]").textContent = draft.hashtags.join(" ");
+  document.querySelector("[data-social-visual]").textContent = draft.visualSuggestion;
+  document.querySelector("[data-social-physician-note]").textContent = draft.physicianNote;
+  socialDraftSection.hidden = false;
+}
+
+const contentLabels = {
+  blog: "WEB SİTESİ BLOG YAZISI",
+  instagram: "INSTAGRAM GÖNDERİ METNİ",
+  facebook: "FACEBOOK GÖNDERİ METNİ",
+  linkedin: "LINKEDIN PROFESYONEL PAYLAŞIMI",
+  x: "X KISA PAYLAŞIM METNİ",
+  video: "TIKTOK / REELS KISA VİDEO SENARYOSU",
+  hashtags: "HASHTAGLER",
+  visualSuggestion: "GÖRSEL / CAROUSEL ÖNERİSİ",
+  physicianNote: "HEKİM KONTROL NOTU",
+};
+
+function contentValue(draft, field) {
+  const value = draft[field];
+  return Array.isArray(value) ? value.join(" ") : String(value || "");
+}
+
+function renderContentDraft(draft) {
+  document.querySelector("[data-content-blog]").textContent = draft.blog;
+  document.querySelector("[data-content-instagram]").textContent = draft.instagram;
+  document.querySelector("[data-content-facebook]").textContent = draft.facebook;
+  document.querySelector("[data-content-linkedin]").textContent = draft.linkedin;
+  document.querySelector("[data-content-x]").textContent = draft.x;
+  document.querySelector("[data-content-video]").textContent = draft.video;
+  document.querySelector("[data-content-hashtags]").textContent = draft.hashtags.join(" ");
+  document.querySelector("[data-content-visual]").textContent = draft.visualSuggestion;
+  document.querySelector("[data-content-physician-note]").textContent = draft.physicianNote;
+  contentDraftSection.hidden = false;
+}
+
+function formatContentKit(draft) {
+  const sections = Object.entries(contentLabels).map(([field, label]) => (
+    `${label}\n${"=".repeat(label.length)}\n${contentValue(draft, field)}`
+  ));
+  return `${draft.title}\n${"-".repeat(draft.title.length)}\n\n${sections.join("\n\n")}\n\nUYARI\n${draft.disclaimer}`;
+}
+
+async function copyText(text) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+  const area = document.createElement("textarea");
+  area.value = text;
+  area.style.position = "fixed";
+  area.style.opacity = "0";
+  document.body.append(area);
+  area.select();
+  document.execCommand("copy");
+  area.remove();
+}
+
+function enableContentExports(enabled) {
+  for (const button of document.querySelectorAll("[data-copy-field]")) {
+    button.disabled = !enabled;
+  }
+  contentExportActions.hidden = !enabled;
+}
+
 function setBusy(button, busy, busyText, idleText) {
   button.disabled = busy;
   button.textContent = busy ? busyText : idleText;
@@ -208,9 +305,12 @@ async function loadContact() {
     loginPanel.hidden = true;
     editor.hidden = false;
     logoutButton.hidden = false;
+    contentEntry.hidden = false;
     fillForm(body.contact);
     statusElement.textContent = "GitHub ile güncel";
     await loadHome();
+    socialEditor.hidden = false;
+    contentEditor.hidden = false;
   } catch (error) {
     if (error.status === 401) {
       loginPanel.hidden = false;
@@ -256,6 +356,9 @@ logoutButton.addEventListener("click", async () => {
     loginPanel.hidden = false;
     editor.hidden = true;
     homeEditor.hidden = true;
+    socialEditor.hidden = true;
+    contentEditor.hidden = true;
+    contentEntry.hidden = true;
     logoutButton.hidden = true;
   }
 });
@@ -373,6 +476,156 @@ homePublishButton.addEventListener("click", async () => {
     setBusy(homePublishButton, false, "Yayınlanıyor", "Yayınla");
     homePublishButton.disabled = true;
   }
+});
+
+socialForm.addEventListener("input", () => {
+  socialDraft = null;
+  socialDraftSection.hidden = true;
+  socialConfirm.checked = false;
+  socialApproveButton.disabled = true;
+  socialStatus.textContent = "Değişiklik var";
+});
+
+socialForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  setBusy(socialGenerateButton, true, "Taslak hazırlanıyor", "Taslak Oluştur");
+  try {
+    const body = await api("/api/admin/social-draft", {
+      method: "POST",
+      body: JSON.stringify({ title: socialForm.elements.title.value }),
+    });
+    socialDraft = body.draft;
+    renderSocialDraft(body.draft);
+    socialConfirm.checked = false;
+    socialApproveButton.disabled = true;
+    socialStatus.textContent = "Hekim onayı bekliyor";
+    showToast(body.message);
+  } catch (error) {
+    showToast(error.message, true);
+  } finally {
+    setBusy(socialGenerateButton, false, "Taslak hazırlanıyor", "Taslak Oluştur");
+  }
+});
+
+socialConfirm.addEventListener("change", () => {
+  socialApproveButton.disabled = !socialConfirm.checked || !socialDraft;
+});
+
+socialApproveButton.addEventListener("click", async () => {
+  if (!socialDraft || !socialConfirm.checked) return;
+  setBusy(socialApproveButton, true, "Onaylanıyor", "Hekim Onaylı Taslak Oluştur");
+  try {
+    const body = await api("/api/admin/social-approve", {
+      method: "POST",
+      body: JSON.stringify({
+        title: socialDraft.title,
+        physicianApproved: true,
+      }),
+    });
+    socialDraft = body.approvedDraft;
+    renderSocialDraft(body.approvedDraft);
+    socialStatus.textContent = "Hekim onaylı taslak";
+    socialConfirm.checked = false;
+    showToast(body.message);
+  } catch (error) {
+    showToast(error.message, true);
+  } finally {
+    setBusy(socialApproveButton, false, "Onaylanıyor", "Hekim Onaylı Taslak Oluştur");
+    socialApproveButton.disabled = true;
+  }
+});
+
+contentForm.addEventListener("input", () => {
+  contentDraft = null;
+  contentDraftSection.hidden = true;
+  contentConfirm.checked = false;
+  contentApproveButton.disabled = true;
+  enableContentExports(false);
+  contentStatus.textContent = "Değişiklik var";
+});
+
+contentForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  setBusy(contentGenerateButton, true, "Paket hazırlanıyor", "İçerik Paketi Oluştur");
+  try {
+    const body = await api("/api/admin/content-draft", {
+      method: "POST",
+      body: JSON.stringify({ title: contentForm.elements.title.value }),
+    });
+    contentDraft = body.draft;
+    renderContentDraft(body.draft);
+    contentConfirm.checked = false;
+    contentApproveButton.disabled = true;
+    enableContentExports(false);
+    contentStatus.textContent = "Hekim onayı bekliyor";
+    showToast(body.message);
+  } catch (error) {
+    showToast(error.message, true);
+  } finally {
+    setBusy(contentGenerateButton, false, "Paket hazırlanıyor", "İçerik Paketi Oluştur");
+  }
+});
+
+contentConfirm.addEventListener("change", () => {
+  contentApproveButton.disabled = !contentConfirm.checked || !contentDraft;
+});
+
+contentApproveButton.addEventListener("click", async () => {
+  if (!contentDraft || !contentConfirm.checked) return;
+  setBusy(contentApproveButton, true, "Onaylanıyor", "Kopyalama ve İndirmeyi Aç");
+  try {
+    const body = await api("/api/admin/content-approve", {
+      method: "POST",
+      body: JSON.stringify({
+        title: contentDraft.title,
+        physicianApproved: true,
+      }),
+    });
+    contentDraft = body.approvedDraft;
+    renderContentDraft(contentDraft);
+    enableContentExports(true);
+    contentStatus.textContent = "Hekim onaylı taslak";
+    contentConfirm.checked = false;
+    showToast(body.message);
+  } catch (error) {
+    showToast(error.message, true);
+  } finally {
+    setBusy(contentApproveButton, false, "Onaylanıyor", "Kopyalama ve İndirmeyi Aç");
+    contentApproveButton.disabled = true;
+  }
+});
+
+for (const button of document.querySelectorAll("[data-copy-field]")) {
+  button.addEventListener("click", async () => {
+    if (!contentDraft || contentDraft.status !== "physician-approved") return;
+    const field = button.dataset.copyField;
+    await copyText(contentValue(contentDraft, field));
+    showToast(`${contentLabels[field]} kopyalandı.`);
+  });
+}
+
+contentCopyAllButton.addEventListener("click", async () => {
+  if (!contentDraft || contentDraft.status !== "physician-approved") return;
+  await copyText(formatContentKit(contentDraft));
+  showToast("İçerik paketinin tamamı kopyalandı.");
+});
+
+contentDownloadButton.addEventListener("click", () => {
+  if (!contentDraft || contentDraft.status !== "physician-approved") return;
+  const blob = new Blob([formatContentKit(contentDraft)], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  const slug = contentDraft.title
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .toLowerCase() || "icerik-taslagi";
+  link.href = url;
+  link.download = `${slug}.txt`;
+  link.click();
+  URL.revokeObjectURL(url);
+  showToast("İçerik paketi indirildi.");
 });
 
 loadContact();

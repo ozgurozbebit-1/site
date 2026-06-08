@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#f4f1ea">
+    <title>İçerik Üret | Site Yönetimi</title>
+    <link rel="stylesheet" href="/admin/admin.css">
+  </head>
+  <body>
+    <main class="admin-shell">
+      <header class="admin-header">
+        <div>
+          <p class="eyebrow">Güvenli yönetim</p>
+          <h1>İçerik Üret</h1>
+          <p>Blog ve sosyal medya taslaklarını hazırlayın, hekim kontrolünden sonra kopyalayın veya indirin.</p>
+        </div>
+        <button class="quiet-button" type="button" data-logout hidden>Çıkış yap</button>
+      </header>
+
+      <nav class="admin-tabs" aria-label="Admin bölümleri">
+        <a href="/admin">İletişim</a>
+        <a class="is-active" href="/admin/content/" aria-current="page">İçerik Üret</a>
+      </nav>
+
+      <section class="panel auth-panel" data-login-panel>
+        <form data-login-form>
+          <div>
+            <p class="eyebrow">Oturum aç</p>
+            <h2>Admin paneline giriş</h2>
+            <p>İçerik üretim aracını kullanmak için yönetici parolasını girin.</p>
+          </div>
+          <label>
+            <span>Yönetici parolası</span>
+            <input type="password" name="password" autocomplete="current-password" required>
+          </label>
+          <button class="primary-button" type="submit">Giriş yap</button>
+        </form>
+      </section>
+
+      <section class="panel content-kit-panel standalone-content" data-content-editor hidden>
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">İçerik Üret</p>
+            <h2>Çok kanallı içerik paketi</h2>
+            <p>Harici API bağlantısı ve otomatik yayın yoktur.</p>
+          </div>
+          <span class="status-pill" data-content-status>Taslak bekleniyor</span>
+        </div>
+
+        <form class="social-form" data-content-form>
+          <label>
+            <span>İçerik başlığı</span>
+            <input type="text" name="title" maxlength="140" placeholder="Örn. Antidepresanlar bağımlılık yapar mı?" required>
+          </label>
+          <button class="primary-button" type="submit" data-content-generate>İçerik Paketi Oluştur</button>
+        </form>
+
+        <section class="content-kit" data-content-draft hidden>
+          <article class="wide-content"><h3>Web sitesi blog yazısı</h3><pre data-content-blog></pre><button class="quiet-button copy-button" type="button" data-copy-field="blog" disabled>Kopyala</button></article>
+          <article><h3>Instagram gönderi metni</h3><pre data-content-instagram></pre><button class="quiet-button copy-button" type="button" data-copy-field="instagram" disabled>Kopyala</button></article>
+          <article><h3>Facebook gönderi metni</h3><pre data-content-facebook></pre><button class="quiet-button copy-button" type="button" data-copy-field="facebook" disabled>Kopyala</button></article>
+          <article><h3>LinkedIn profesyonel paylaşımı</h3><pre data-content-linkedin></pre><button class="quiet-button copy-button" type="button" data-copy-field="linkedin" disabled>Kopyala</button></article>
+          <article><h3>X kısa paylaşım metni</h3><pre data-content-x></pre><button class="quiet-button copy-button" type="button" data-copy-field="x" disabled>Kopyala</button></article>
+          <article><h3>TikTok/Reels kısa video senaryosu</h3><pre data-content-video></pre><button class="quiet-button copy-button" type="button" data-copy-field="video" disabled>Kopyala</button></article>
+          <article><h3>5-8 hashtag</h3><pre data-content-hashtags></pre><button class="quiet-button copy-button" type="button" data-copy-field="hashtags" disabled>Kopyala</button></article>
+          <article><h3>Görsel/carousel önerisi</h3><pre data-content-visual></pre><button class="quiet-button copy-button" type="button" data-copy-field="visualSuggestion" disabled>Kopyala</button></article>
+          <article class="physician-note wide-content"><h3>Hekim kontrol notu</h3><pre data-content-physician-note></pre></article>
+          <div class="content-export">
+            <label class="confirm-row"><input type="checkbox" data-content-confirm><span>Hekim onayı verdim; içeriklerin bilimsel doğruluğunu ve sağlık iletişimi uygunluğunu kontrol ettim.</span></label>
+            <button class="publish-button" type="button" data-content-approve disabled>Kopyalama ve İndirmeyi Aç</button>
+            <div class="export-actions" data-content-export-actions hidden>
+              <button class="quiet-button" type="button" data-content-copy-all>Tümünü Kopyala</button>
+              <button class="quiet-button" type="button" data-content-download>TXT Olarak İndir</button>
+            </div>
+            <p>Bu araç yalnızca taslak üretir. Siteye veya sosyal medya hesaplarına yayın yapmaz.</p>
+          </div>
+        </section>
+      </section>
+
+      <div class="toast" role="status" aria-live="polite" data-toast hidden></div>
+    </main>
+    <script src="/admin/content.js" defer></script>
+  </body>
+</html>
