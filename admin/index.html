@@ -19,6 +19,11 @@
         <button class="quiet-button" type="button" data-logout hidden>Çıkış yap</button>
       </header>
 
+      <nav class="admin-tabs" aria-label="Admin bölümleri">
+        <a class="is-active" href="/admin" aria-current="page">İletişim</a>
+        <a href="/admin/content">İçerik Üret</a>
+      </nav>
+
       <section class="panel auth-panel" data-login-panel>
         <form data-login-form>
           <div>
@@ -32,6 +37,15 @@
           </label>
           <button class="primary-button" type="submit">Giriş yap</button>
         </form>
+      </section>
+
+      <section class="content-entry" data-content-entry hidden>
+        <div>
+          <p class="eyebrow">İçerik üretimi</p>
+          <h2>Blog ve sosyal medya taslakları hazırlayın</h2>
+          <p>Tek bir başlıktan blog, Instagram, Facebook, LinkedIn, X ve kısa video taslakları oluşturun.</p>
+        </div>
+        <a class="content-entry-button" href="/admin/content">İçerik Üret Modülünü Aç</a>
       </section>
 
       <section class="editor" data-editor hidden>
@@ -230,6 +244,82 @@
             </div>
           </section>
         </aside>
+      </section>
+
+      <section class="panel social-content-panel" data-social-editor hidden>
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Sosyal Medya İçeriği</p>
+            <h2>Güvenli içerik taslağı</h2>
+            <p>Bir konu başlığı girin. İçerik yalnızca taslak olarak hazırlanır ve otomatik yayınlanmaz.</p>
+          </div>
+          <span class="status-pill" data-social-status>Taslak bekleniyor</span>
+        </div>
+
+        <form class="social-form" data-social-form>
+          <label>
+            <span>İçerik başlığı</span>
+            <input type="text" name="title" maxlength="140" placeholder="Örn. Panik atak hakkında sık sorulanlar" required>
+          </label>
+          <button class="primary-button" type="submit" data-social-generate>Taslak Oluştur</button>
+        </form>
+
+        <section class="social-draft" data-social-draft hidden>
+          <article><h3>Instagram açıklaması</h3><p data-social-instagram></p></article>
+          <article><h3>Facebook paylaşım metni</h3><p data-social-facebook></p></article>
+          <article><h3>LinkedIn profesyonel paylaşım metni</h3><p data-social-linkedin></p></article>
+          <article><h3>TikTok kısa video senaryosu</h3><p data-social-tiktok></p></article>
+          <article><h3>5 hashtag</h3><p data-social-hashtags></p></article>
+          <article><h3>Görsel önerisi</h3><p data-social-visual></p></article>
+          <article class="physician-note"><h3>Hekim kontrol notu</h3><p data-social-physician-note></p></article>
+
+          <div class="social-approval">
+            <label class="confirm-row">
+              <input type="checkbox" data-social-confirm>
+              <span>Hekim kontrolünü yaptım ve bu taslağa onay verdim.</span>
+            </label>
+            <button class="publish-button" type="button" data-social-approve disabled>Hekim Onaylı Taslak Oluştur</button>
+            <p>Bu düğme sosyal medya hesaplarında paylaşım yapmaz. Yalnızca taslağın hekim tarafından kontrol edildiğini işaretler.</p>
+          </div>
+        </section>
+      </section>
+
+      <section class="panel content-kit-panel" data-content-editor hidden>
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">İçerik Üret</p>
+            <h2>Çok kanallı içerik paketi</h2>
+            <p>Başlıktan blog ve sosyal medya taslakları oluşturur. Harici API bağlantısı veya otomatik yayın yoktur.</p>
+          </div>
+          <span class="status-pill" data-content-status>Taslak bekleniyor</span>
+        </div>
+
+        <form class="social-form" data-content-form>
+          <label><span>İçerik başlığı</span><input type="text" name="title" maxlength="140" placeholder="Örn. Antidepresanlar bağımlılık yapar mı?" required></label>
+          <button class="primary-button" type="submit" data-content-generate>İçerik Paketi Oluştur</button>
+        </form>
+
+        <section class="content-kit" data-content-draft hidden>
+          <article class="wide-content"><h3>Web sitesi blog yazısı</h3><pre data-content-blog></pre><button class="quiet-button copy-button" type="button" data-copy-field="blog" disabled>Kopyala</button></article>
+          <article><h3>Instagram gönderi metni</h3><pre data-content-instagram></pre><button class="quiet-button copy-button" type="button" data-copy-field="instagram" disabled>Kopyala</button></article>
+          <article><h3>Facebook gönderi metni</h3><pre data-content-facebook></pre><button class="quiet-button copy-button" type="button" data-copy-field="facebook" disabled>Kopyala</button></article>
+          <article><h3>LinkedIn profesyonel paylaşımı</h3><pre data-content-linkedin></pre><button class="quiet-button copy-button" type="button" data-copy-field="linkedin" disabled>Kopyala</button></article>
+          <article><h3>X kısa paylaşım metni</h3><pre data-content-x></pre><button class="quiet-button copy-button" type="button" data-copy-field="x" disabled>Kopyala</button></article>
+          <article><h3>TikTok/Reels kısa video senaryosu</h3><pre data-content-video></pre><button class="quiet-button copy-button" type="button" data-copy-field="video" disabled>Kopyala</button></article>
+          <article><h3>5-8 hashtag</h3><pre data-content-hashtags></pre><button class="quiet-button copy-button" type="button" data-copy-field="hashtags" disabled>Kopyala</button></article>
+          <article><h3>Görsel/carousel önerisi</h3><pre data-content-visual></pre><button class="quiet-button copy-button" type="button" data-copy-field="visualSuggestion" disabled>Kopyala</button></article>
+          <article class="physician-note wide-content"><h3>Hekim kontrol notu</h3><pre data-content-physician-note></pre></article>
+
+          <div class="content-export">
+            <label class="confirm-row"><input type="checkbox" data-content-confirm><span>Hekim onayı verdim; içeriklerin bilimsel doğruluğunu ve sağlık iletişimi uygunluğunu kontrol ettim.</span></label>
+            <button class="publish-button" type="button" data-content-approve disabled>Kopyalama ve İndirmeyi Aç</button>
+            <div class="export-actions" data-content-export-actions hidden>
+              <button class="quiet-button" type="button" data-content-copy-all>Tümünü Kopyala</button>
+              <button class="quiet-button" type="button" data-content-download>TXT Olarak İndir</button>
+            </div>
+            <p>Bu araç yalnızca taslak üretir. Siteye veya sosyal medya hesaplarına yayın yapmaz.</p>
+          </div>
+        </section>
       </section>
 
       <div class="toast" role="status" aria-live="polite" data-toast hidden></div>
