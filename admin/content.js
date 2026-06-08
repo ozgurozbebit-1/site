@@ -18,14 +18,37 @@ let toastTimer;
 
 const contentLabels = {
   blog: "WEB SİTESİ BLOG YAZISI",
+  blogSeoPackage: "BLOG SEO PAKETİ",
+  brochure: "HASTA BİLGİLENDİRME BROŞÜRÜ",
+  contentCalendar: "7 GÜNLÜK İÇERİK TAKVİMİ",
   instagram: "INSTAGRAM GÖNDERİ METNİ",
+  carousel: "INSTAGRAM CAROUSEL",
   facebook: "FACEBOOK GÖNDERİ METNİ",
+  facebookLong: "FACEBOOK UZUN GÖNDERİ",
   linkedin: "LINKEDIN PROFESYONEL PAYLAŞIMI",
+  linkedinArticle: "LINKEDIN UZUN MAKALE",
   x: "X KISA PAYLAŞIM METNİ",
+  xFlood: "8 TWEETLİK X FLOOD",
   video: "TIKTOK / REELS KISA VİDEO SENARYOSU",
+  videoScripts: "VİDEO KONUŞMA METİNLERİ",
+  podcast: "PODCAST METNİ",
+  faq: "SIK SORULAN SORULAR",
   hashtags: "HASHTAGLER",
   visualSuggestion: "GÖRSEL / CAROUSEL ÖNERİSİ",
   physicianNote: "HEKİM KONTROL NOTU",
+};
+
+const contentTabFields = {
+  blog: ["blog", "brochure", "contentCalendar"],
+  "seo-blog": ["blogSeoPackage"],
+  instagram: ["instagram", "hashtags", "visualSuggestion"],
+  carousel: ["carousel"],
+  facebook: ["facebook", "facebookLong"],
+  "linkedin-long": ["linkedinArticle"],
+  "x-flood": ["xFlood"],
+  video: ["video", "videoScripts"],
+  podcast: ["podcast"],
+  faq: ["faq"],
 };
 
 async function api(path, options = {}) {
@@ -67,20 +90,32 @@ function contentValue(draft, field) {
 }
 
 function renderContentDraft(draft) {
-  for (const field of ["blog", "instagram", "facebook", "linkedin", "x", "video"]) {
-    document.querySelector(`[data-content-${field}]`).textContent = draft[field];
+  for (const output of document.querySelectorAll("[data-content-output]")) {
+    output.textContent = contentValue(draft, output.dataset.contentOutput);
   }
-  document.querySelector("[data-content-hashtags]").textContent = draft.hashtags.join(" ");
-  document.querySelector("[data-content-visual]").textContent = draft.visualSuggestion;
-  document.querySelector("[data-content-physician-note]").textContent = draft.physicianNote;
+  activateContentTab("blog");
   contentDraftSection.hidden = false;
 }
 
+function activateContentTab(tabName) {
+  for (const tab of document.querySelectorAll("[data-content-tab]")) {
+    const active = tab.dataset.contentTab === tabName;
+    tab.setAttribute("aria-selected", String(active));
+  }
+  for (const panel of document.querySelectorAll("[data-content-panel]")) {
+    panel.hidden = panel.dataset.contentPanel !== tabName;
+  }
+}
+
+function formatContentFields(draft, fields) {
+  return fields.map((field) => {
+    const label = contentLabels[field];
+    return `${label}\n${"=".repeat(label.length)}\n${contentValue(draft, field)}`;
+  }).join("\n\n");
+}
+
 function formatContentKit(draft) {
-  const sections = Object.entries(contentLabels).map(([field, label]) => (
-    `${label}\n${"=".repeat(label.length)}\n${contentValue(draft, field)}`
-  ));
-  return `${draft.title}\n${"-".repeat(draft.title.length)}\n\n${sections.join("\n\n")}\n\nUYARI\n${draft.disclaimer}`;
+  return `${draft.title}\n${"-".repeat(draft.title.length)}\n\n${formatContentFields(draft, Object.keys(contentLabels))}\n\nUYARI\n${draft.disclaimer}`;
 }
 
 async function copyText(text) {
@@ -98,11 +133,60 @@ async function copyText(text) {
   area.remove();
 }
 
+function fileSlug(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/ı/g, "i")
+    .replace(/[^a-zA-Z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .toLowerCase() || "icerik-taslagi";
+}
+
+function downloadText(text, filename) {
+  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function setupTabExports() {
+  for (const panel of document.querySelectorAll("[data-content-panel]")) {
+    const tabName = panel.dataset.contentPanel;
+    let actions = panel.querySelector(".tab-export-actions");
+    if (!actions) {
+      actions = document.createElement("div");
+      actions.className = "tab-export-actions";
+      panel.append(actions);
+    }
+    const copyButton = panel.querySelector("[data-copy-tab]");
+    if (copyButton && copyButton.parentElement !== actions) actions.append(copyButton);
+    if (!actions.querySelector("[data-download-tab]")) {
+      const button = document.createElement("button");
+      button.className = "quiet-button";
+      button.type = "button";
+      button.dataset.downloadTab = tabName;
+      button.disabled = true;
+      button.textContent = "TXT indir";
+      actions.append(button);
+    }
+  }
+}
+
+setupTabExports();
+
 function enableExports(enabled) {
-  for (const button of document.querySelectorAll("[data-copy-field]")) {
+  for (const button of document.querySelectorAll("[data-copy-field], [data-copy-tab], [data-download-tab]")) {
     button.disabled = !enabled;
   }
   contentExportActions.hidden = !enabled;
+}
+
+for (const tab of document.querySelectorAll("[data-content-tab]")) {
+  tab.addEventListener("click", () => activateContentTab(tab.dataset.contentTab));
 }
 
 function showEditor() {
@@ -160,7 +244,7 @@ contentForm.addEventListener("input", () => {
 
 contentForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  setBusy(contentGenerateButton, true, "Paket hazırlanıyor", "İçerik Paketi Oluştur");
+  setBusy(contentGenerateButton, true, "UZMAN PAKETİ HAZIRLANIYOR", "UZMAN PAKETİ OLUŞTUR");
   try {
     const body = await api("/api/admin/content-draft", {
       method: "POST",
@@ -176,7 +260,7 @@ contentForm.addEventListener("submit", async (event) => {
   } catch (error) {
     showToast(error.message, true);
   } finally {
-    setBusy(contentGenerateButton, false, "Paket hazırlanıyor", "İçerik Paketi Oluştur");
+    setBusy(contentGenerateButton, false, "UZMAN PAKETİ HAZIRLANIYOR", "UZMAN PAKETİ OLUŞTUR");
   }
 });
 
@@ -215,6 +299,25 @@ for (const button of document.querySelectorAll("[data-copy-field]")) {
   });
 }
 
+for (const button of document.querySelectorAll("[data-copy-tab]")) {
+  button.addEventListener("click", async () => {
+    if (contentDraft?.status !== "physician-approved") return;
+    const tabName = button.dataset.copyTab;
+    await copyText(formatContentFields(contentDraft, contentTabFields[tabName]));
+    showToast(`${button.textContent.replace(" Kopyala", "")} kopyalandı.`);
+  });
+}
+
+for (const button of document.querySelectorAll("[data-download-tab]")) {
+  button.addEventListener("click", () => {
+    if (contentDraft?.status !== "physician-approved") return;
+    const tabName = button.dataset.downloadTab;
+    const text = formatContentFields(contentDraft, contentTabFields[tabName]);
+    downloadText(text, `${fileSlug(contentDraft.title)}-${tabName}.txt`);
+    showToast(`${tabName} sekmesi TXT olarak indirildi.`);
+  });
+}
+
 contentCopyAllButton.addEventListener("click", async () => {
   if (contentDraft?.status !== "physician-approved") return;
   await copyText(formatContentKit(contentDraft));
@@ -223,19 +326,7 @@ contentCopyAllButton.addEventListener("click", async () => {
 
 contentDownloadButton.addEventListener("click", () => {
   if (contentDraft?.status !== "physician-approved") return;
-  const blob = new Blob([formatContentKit(contentDraft)], { type: "text/plain;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  const slug = contentDraft.title
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-zA-Z0-9]+/g, "-")
-    .replace(/^-|-$/g, "")
-    .toLowerCase() || "icerik-taslagi";
-  link.href = url;
-  link.download = `${slug}.txt`;
-  link.click();
-  URL.revokeObjectURL(url);
+  downloadText(formatContentKit(contentDraft), `${fileSlug(contentDraft.title)}.txt`);
   showToast("İçerik paketi indirildi.");
 });
 

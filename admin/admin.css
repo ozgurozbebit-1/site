@@ -420,6 +420,84 @@ textarea {
   margin-top: 26px;
 }
 
+.expert-package-button {
+  min-width: 250px;
+  letter-spacing: 0.035em;
+}
+
+.expert-package-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.expert-package-list span {
+  border: 1px solid rgba(56, 90, 79, 0.22);
+  border-radius: 999px;
+  background: rgba(56, 90, 79, 0.07);
+  color: var(--sage);
+  padding: 7px 11px;
+  font-size: 12px;
+  font-weight: 760;
+}
+
+.content-tabs {
+  display: flex;
+  grid-column: 1 / -1;
+  gap: 8px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--line);
+  padding: 0 0 12px;
+  scrollbar-width: thin;
+}
+
+.content-tabs button {
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--muted);
+  padding: 9px 15px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 760;
+  cursor: pointer;
+}
+
+.content-tabs button:hover,
+.content-tabs button[aria-selected="true"] {
+  border-color: var(--sage);
+  background: var(--sage);
+  color: #fff;
+}
+
+.content-tab-panel {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.content-tab-panel[hidden] {
+  display: none;
+}
+
+.content-tab-panel > article:only-of-type {
+  grid-column: 1 / -1;
+}
+
+.tab-export-actions {
+  display: flex;
+  grid-column: 1 / -1;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tab-export-actions .quiet-button {
+  min-width: 112px;
+}
+
 .content-kit article {
   display: grid;
   align-content: start;
@@ -436,7 +514,7 @@ textarea {
 }
 
 .content-kit pre {
-  max-height: 360px;
+  max-height: 440px;
   overflow: auto;
   margin: 0;
   color: var(--ink);
@@ -605,6 +683,10 @@ textarea {
     grid-template-columns: 1fr;
   }
 
+  .content-tab-panel {
+    grid-template-columns: 1fr;
+  }
+
   .wide-field {
     grid-column: auto;
   }
@@ -619,7 +701,8 @@ textarea {
   }
 
   .content-kit .wide-content,
-  .content-export {
+  .content-export,
+  .content-tab-panel > article:only-of-type {
     grid-column: auto;
   }
 }
