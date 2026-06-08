@@ -40,15 +40,27 @@ export function methodNotAllowed(res, allowed) {
 
 export function handleError(res, error) {
   const status = Number.isInteger(error.statusCode) ? error.statusCode : 500;
-  const message = status >= 500
-    ? "İşlem tamamlanamadı. Sunucu ayarlarını ve GitHub erişimini kontrol edin."
-    : error.message;
+  const safeMessage = error.message || "İşlem tamamlanamadı.";
+  const details = error.details || undefined;
 
-  if (status >= 500) {
-    console.error(error);
-  }
+  console.error("[api] İşlem başarısız", {
+    name: error.name,
+    code: error.code || null,
+    message: safeMessage,
+    statusCode: status,
+    githubStatus: error.githubStatus || null,
+    githubMessage: error.githubMessage || null,
+    details,
+    stack: error.stack,
+  });
 
-  json(res, status, { error: message });
+  json(res, status, {
+    error: safeMessage,
+    code: error.code || undefined,
+    githubStatus: error.githubStatus || undefined,
+    githubMessage: error.githubMessage || undefined,
+    details,
+  });
 }
 
 export function assertSameOrigin(req) {

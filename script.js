@@ -8,6 +8,47 @@ const chatClose = document.querySelector("[data-chat-close]");
 const phqRoot = document.querySelector("[data-phq]");
 const mdqRoot = document.querySelector("[data-mdq]");
 const gadRoot = document.querySelector("[data-gad]");
+const contactDataElement = document.querySelector("#site-contact-data");
+
+if (contactDataElement) {
+  try {
+    const contact = JSON.parse(contactDataElement.textContent);
+    const hrefs = {
+      phone: contact.phoneHref,
+      whatsapp: contact.whatsappHref,
+      email: contact.emailHref,
+      emailAppointment: contact.emailAppointmentHref,
+      instagram: contact.instagram,
+      linkedin: contact.linkedin,
+    };
+    const texts = {
+      phone: contact.phone,
+      whatsapp: contact.whatsapp,
+      email: contact.email,
+      address: contact.address,
+    };
+
+    Object.entries(hrefs).forEach(([key, href]) => {
+      document.querySelectorAll(`[data-contact-href="${key}"]`).forEach((element) => {
+        if (href) element.setAttribute("href", href);
+      });
+    });
+
+    Object.entries(texts).forEach(([key, text]) => {
+      document.querySelectorAll(`[data-contact-text="${key}"]`).forEach((element) => {
+        element.textContent = text;
+      });
+    });
+
+    ["whatsapp", "instagram", "linkedin"].forEach((key) => {
+      document.querySelectorAll(`[data-contact-visible="${key}"]`).forEach((element) => {
+        element.hidden = !hrefs[key];
+      });
+    });
+  } catch (error) {
+    console.error("İletişim bilgileri okunamadı.", error);
+  }
+}
 
 const syncHeader = () => {
   header.classList.toggle("is-scrolled", window.scrollY > 16);

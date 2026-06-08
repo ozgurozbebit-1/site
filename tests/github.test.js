@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { commitFiles, readFile } from "../api/_lib/github.js";
+import {
+  commitFiles,
+  githubEnvironmentStatus,
+  readFile,
+  validateGithubAccess,
+} from "../api/_lib/github.js";
 
 process.env.GITHUB_TOKEN = "github-test-token";
 process.env.GITHUB_OWNER = "owner";
@@ -65,4 +70,76 @@ test("birden çok HTML dosyasını tek atomik commit ile main branch'e gönderir
   assert.equal(calls.filter((call) => call.url.endsWith("/git/blobs")).length, 2);
   assert.equal(calls.filter((call) => call.url.endsWith("/git/commits") && call.method === "POST").length, 1);
   assert.equal(calls.at(-1).method, "PATCH");
+});
+
+test("GitHub ortam değişkenlerinin güvenli durumunu döndürür", () => {
+  assert.deepEqual(githubEnvironmentStatus(), {
+    tokenConfigured: true,
+    owner: "owner",
+    repo: "repo",
+    branch: "main",
+  });
+  assert.doesNotMatch(JSON.stringify(githubEnvironmentStatus()), /github-test-token/);
+});
+
+for (const scenario of [
+  {
+    name: "401 durumunda geçersiz token hatasını ayrıntılandırır",
+    status: 401,
+    message: "Bad credentials",
+    expected: /GitHub API 401: Token geçersiz/,
+  },
+  {
+    name: "403 durumunda token yetki hatasını ayrıntılandırır",
+    status: 403,
+    message: "Resource not accessible by personal access token",
+    expected: /GitHub API 403: Tokenın bu işlem için yetkisi yok/,
+  },
+  {
+    name: "404 durumunda depo bulunamadı hatasını ayrıntılandırır",
+    status: 404,
+    message: "Not Found",
+    expected: /GitHub API 404: Depo bulunamadı/,
+  },
+]) {
+  test(scenario.name, async (context) => {
+    const originalFetch = global.fetch;
+    context.after(() => {
+      global.fetch = originalFetch;
+    });
+    global.fetch = async () => response({ message: scenario.message }, scenario.status);
+
+    await assert.rejects(
+      validateGithubAccess(),
+      (error) => {
+        assert.match(error.message, scenario.expected);
+        assert.equal(error.githubStatus, scenario.status);
+        assert.equal(error.githubMessage, scenario.message);
+        assert.equal(error.details.environment.tokenConfigured, true);
+        assert.doesNotMatch(JSON.stringify(error.details), /github-test-token/);
+        return true;
+      },
+    );
+  });
+}
+
+test("branch bulunamazsa branch adını hata mesajında gösterir", async (context) => {
+  const originalFetch = global.fetch;
+  context.after(() => {
+    global.fetch = originalFetch;
+  });
+  global.fetch = async (url) => {
+    if (url.endsWith("/repos/owner/repo")) return response({ full_name: "owner/repo" });
+    return response({ message: "Not Found" }, 404);
+  };
+
+  await assert.rejects(
+    validateGithubAccess(),
+    (error) => {
+      assert.match(error.message, /"main" branch'i bulunamadı/);
+      assert.equal(error.githubStatus, 404);
+      assert.equal(error.details.request.context, "branch");
+      return true;
+    },
+  );
 });

@@ -10,6 +10,13 @@ const publishButton = document.querySelector("[data-publish]");
 const confirmCheckbox = document.querySelector("[data-confirm]");
 const affectedFiles = document.querySelector("[data-affected-files]");
 const previewSummary = document.querySelector("[data-preview-summary]");
+const publishResult = document.querySelector("[data-publish-result]");
+const resultSha = document.querySelector("[data-result-sha]");
+const resultCount = document.querySelector("[data-result-count]");
+const resultFiles = document.querySelector("[data-result-files]");
+const resultCommitLink = document.querySelector("[data-result-commit-link]");
+const resultVercelLink = document.querySelector("[data-result-vercel-link]");
+const resultProductionLink = document.querySelector("[data-result-production-link]");
 const toast = document.querySelector("[data-toast]");
 
 let approvedContact = null;
@@ -28,7 +35,19 @@ async function api(path, options = {}) {
   });
   const body = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const error = new Error(body.error || "İşlem tamamlanamadı.");
+    const diagnostics = [];
+    if (body.githubStatus) diagnostics.push(`GitHub status: ${body.githubStatus}`);
+    if (body.githubMessage) diagnostics.push(`GitHub mesajı: ${body.githubMessage}`);
+    if (body.details?.environment) {
+      const env = body.details.environment;
+      diagnostics.push(`Token: ${env.tokenConfigured ? "tanımlı" : "tanımlı değil"}`);
+      diagnostics.push(`Owner: ${env.owner || "tanımlı değil"}`);
+      diagnostics.push(`Repo: ${env.repo || "tanımlı değil"}`);
+      diagnostics.push(`Branch: ${env.branch || "tanımlı değil"}`);
+    }
+    const error = new Error(
+      [body.error || "İşlem tamamlanamadı.", ...diagnostics].join("\n"),
+    );
     error.status = response.status;
     throw error;
   }
@@ -81,6 +100,23 @@ function resetApproval() {
   confirmCheckbox.checked = false;
   publishButton.disabled = true;
   statusElement.textContent = "Değişiklik var";
+}
+
+function renderPublishResult(body) {
+  resultSha.textContent = body.commit.sha;
+  resultCount.textContent = String(body.updatedFileCount);
+  resultFiles.replaceChildren(
+    ...body.commit.files.map((file) => {
+      const item = document.createElement("li");
+      item.textContent = file;
+      return item;
+    }),
+  );
+  resultCommitLink.href = body.commit.githubUrl;
+  resultVercelLink.href = body.vercelDeployCheckUrl;
+  resultProductionLink.hidden = !body.productionUrl;
+  if (body.productionUrl) resultProductionLink.href = body.productionUrl;
+  publishResult.hidden = false;
 }
 
 function setBusy(button, busy, busyText, idleText) {
@@ -194,6 +230,7 @@ publishButton.addEventListener("click", async () => {
       body: JSON.stringify({ contact: approvedContact, confirm: true }),
     });
     statusElement.textContent = `Commit: ${body.commit.shortSha}`;
+    renderPublishResult(body);
     approvedContact = null;
     confirmCheckbox.checked = false;
     publishBox.hidden = true;
