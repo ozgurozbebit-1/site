@@ -425,6 +425,20 @@ footer p {
   margin: 0;
 }
 
+.footer-contact {
+  display: flex;
+  flex: 1 0 100%;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+}
+
+.footer-contact a {
+  color: var(--sage-dark);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .chatbox {
   position: fixed;
   right: clamp(16px, 3vw, 28px);

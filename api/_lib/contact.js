@@ -156,6 +156,40 @@ function escapeText(value) {
     .replaceAll(">", "&gt;");
 }
 
+function footerContactMarkup() {
+  return `      <!-- SITE_FOOTER_CONTACT_START -->
+      <p class="footer-contact">
+        <a data-contact-href="phone" data-contact-text="phone" href="#">Telefon</a>
+        <a data-contact-href="whatsapp" data-contact-visible="whatsapp" href="#" hidden>WhatsApp: <span data-contact-text="whatsapp"></span></a>
+        <a data-contact-href="email" data-contact-text="email" href="#">E-posta</a>
+        <span data-contact-text="address">Adres</span>
+        <a data-contact-href="instagram" data-contact-visible="instagram" href="#" target="_blank" rel="noreferrer" hidden>Instagram</a>
+        <a data-contact-href="linkedin" data-contact-visible="linkedin" href="#" target="_blank" rel="noreferrer" hidden>LinkedIn</a>
+      </p>
+      <!-- SITE_FOOTER_CONTACT_END -->
+`;
+}
+
+function ensureFooterContact(html) {
+  const start = "<!-- SITE_FOOTER_CONTACT_START -->";
+  const end = "<!-- SITE_FOOTER_CONTACT_END -->";
+  const startIndex = html.indexOf(start);
+  const endIndex = html.indexOf(end);
+  const markup = footerContactMarkup();
+
+  if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
+    return `${html.slice(0, startIndex)}${markup.trimEnd()}${html.slice(endIndex + end.length)}`;
+  }
+
+  if (html.includes("</footer>")) {
+    return html.replace("</footer>", `${markup}    </footer>`);
+  }
+  if (html.includes("</body>")) {
+    return html.replace("</body>", `${markup}</body>`);
+  }
+  return `${html}\n${markup}`;
+}
+
 function updateHref(html, key, href) {
   const pattern = new RegExp(`(<[^>]+data-contact-href="${key}"[^>]*)(>)`, "g");
   return html.replace(pattern, (match, opening, close) => {
@@ -233,13 +267,47 @@ export function applyContactToMarkup(html, contact) {
     address: contact.address,
   };
 
-  let next = html;
+  let next = ensureFooterContact(html);
   for (const [key, href] of Object.entries(hrefs)) next = updateHref(next, key, href);
   for (const [key, text] of Object.entries(texts)) next = updateText(next, key, text);
   for (const key of ["whatsapp", "instagram", "linkedin"]) {
     next = updateVisibility(next, key, Boolean(hrefs[key]));
   }
   return updateStructuredData(next, contact);
+}
+
+export function verifyPublishedContact(files, contact) {
+  const failures = [];
+
+  for (const [path, html] of Object.entries(files)) {
+    const requiredValues = [
+      contact.phone,
+      contact.phoneHref,
+      contact.email,
+      contact.emailHref,
+      contact.address,
+      '"@type":"Physician"',
+      `"telephone":${JSON.stringify(contact.phone)}`,
+      `"email":${JSON.stringify(contact.email)}`,
+      `"streetAddress":${JSON.stringify(contact.address)}`,
+      "SITE_FOOTER_CONTACT_START",
+    ];
+
+    if (contact.whatsapp) requiredValues.push(contact.whatsapp, contact.whatsappHref);
+    if (contact.instagram) requiredValues.push(contact.instagram);
+    if (contact.linkedin) requiredValues.push(contact.linkedin);
+
+    const missing = requiredValues.filter((value) => !html.includes(value));
+    if (missing.length) failures.push(`${path}: ${missing.join(", ")}`);
+  }
+
+  if (failures.length) {
+    const error = new Error(`HTML iletişim doğrulaması başarısız: ${failures.join(" | ")}`);
+    error.statusCode = 500;
+    throw error;
+  }
+
+  return true;
 }
 
 export function updateContactBlock(html, contact) {

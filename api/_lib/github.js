@@ -43,9 +43,10 @@ async function github(path, options = {}) {
   return body;
 }
 
-export async function readFile(path) {
+export async function readFile(path, ref) {
   const { owner, repo, branch } = config();
-  const data = await github(`/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(branch)}`);
+  const targetRef = ref || branch;
+  const data = await github(`/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(targetRef)}`);
   if (data.type !== "file" || !data.content) {
     const error = new Error(`${path} GitHub deposunda bulunamadı.`);
     error.statusCode = 500;
@@ -54,8 +55,8 @@ export async function readFile(path) {
   return Buffer.from(data.content.replace(/\n/g, ""), "base64").toString("utf8");
 }
 
-export async function readFiles(paths) {
-  const entries = await Promise.all(paths.map(async (path) => [path, await readFile(path)]));
+export async function readFiles(paths, ref) {
+  const entries = await Promise.all(paths.map(async (path) => [path, await readFile(path, ref)]));
   return Object.fromEntries(entries);
 }
 
