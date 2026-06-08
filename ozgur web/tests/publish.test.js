@@ -57,6 +57,7 @@ test("yayın endpoint'i tüm HTML dosyalarını tek commit ile günceller", asyn
   });
 
   global.fetch = async (url, options = {}) => {
+    if (url.endsWith("/repos/owner/repo")) return response({ full_name: "owner/repo" });
     if (url.includes("/contents/")) {
       const ref = new URL(url).searchParams.get("ref");
       const encodedPath = url.match(/\/contents\/([^?]+)/)[1];
@@ -127,6 +128,11 @@ test("yayın endpoint'i tüm HTML dosyalarını tek commit ile günceller", asyn
     assert.ok(html.includes('href="tel:+905551112233"'), `${path} tel bağlantısını içermeli`);
     assert.ok(html.includes('href="mailto:yeni@example.com"'), `${path} mailto bağlantısını içermeli`);
   }
+
+  const committedIndex = blobBodies[HTML_FILES.indexOf("index.html")];
+  assert.doesNotMatch(committedIndex, /g(?:ü|u)ncelleniyor/i);
+  assert.match(committedIndex, />555 111 22 33<\/a>/);
+  assert.match(committedIndex, />yeni@example\.com<\/a>/);
 
   assert.ok(blobBodies.every((html) => html.includes("Yeni Mahalle, Didim / Aydın")));
   assert.ok(blobBodies.every((html) => html.includes('"telephone":"555 111 22 33"')));

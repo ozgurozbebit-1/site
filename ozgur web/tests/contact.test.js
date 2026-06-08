@@ -80,6 +80,31 @@ test("HTML veri bloğunu, görünür alanları ve Physician şemasını güncell
   });
 });
 
+test("eski güncelleniyor placeholder bağlantılarını gerçek form değerleriyle değiştirir", () => {
+  const html = `<!doctype html>
+<head>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Physician"}</script>
+</head>
+<body>
+<a data-contact-href="phone" data-contact-text="phone" href="tel:+güncelleniyor">güncelleniyor</a>
+<a data-contact-href="whatsapp" href="https://wa.me/guncelleniyor">WhatsApp</a>
+<a data-contact-href="email" data-contact-text="email" href="mailto:güncelleniyor">güncelleniyor</a>
+<a data-contact-href="emailAppointment" href="mailto:güncelleniyor?subject=Randevu%20Talebi">E-posta Gönder</a>
+<span data-contact-text="address">güncelleniyor</span>
+<footer></footer>
+</body>`;
+  const updated = updateContactBlock(html, validInput);
+
+  assert.doesNotMatch(updated, /g(?:ü|u)ncelleniyor/i);
+  assert.match(updated, /href="tel:\+905551112233"/);
+  assert.match(updated, /href="https:\/\/wa\.me\/905554443322"/);
+  assert.match(updated, /href="mailto:info@example\.com"/);
+  assert.match(updated, /href="mailto:info@example\.com\?subject=Randevu%20Talebi"/);
+  assert.match(updated, />0555 111 22 33<\/a>/);
+  assert.match(updated, />info@example\.com<\/a>/);
+  assert.match(updated, />Yeni Mahalle, Didim \/ Aydın<\/span>/);
+});
+
 test("üretilen ana sayfa ve hizmet sayfalarında telefon ile e-posta görünür", () => {
   const contact = normalizeContact(validInput);
   const source = `<!doctype html>
@@ -109,6 +134,19 @@ test("index.html görünür telefon veya e-posta içermiyorsa yayını reddeder"
   assert.throws(
     () => verifyIndexContact(onlyDataBlock, contact),
     /index\.html içinde yeni telefon ve e-posta/,
+  );
+});
+
+test("index.html içinde güncelleniyor kaldıysa yayını reddeder", () => {
+  const contact = normalizeContact(validInput);
+  const html = updateContactBlock(
+    `<head><script type="application/ld+json">{"@type":"Physician"}</script></head>
+    <body><p>güncelleniyor</p><footer></footer></body>`,
+    contact,
+  );
+  assert.throws(
+    () => verifyIndexContact(html, contact),
+    /güncelleniyor/,
   );
 });
 

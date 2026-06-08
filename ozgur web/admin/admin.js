@@ -35,7 +35,19 @@ async function api(path, options = {}) {
   });
   const body = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const error = new Error(body.error || "İşlem tamamlanamadı.");
+    const diagnostics = [];
+    if (body.githubStatus) diagnostics.push(`GitHub status: ${body.githubStatus}`);
+    if (body.githubMessage) diagnostics.push(`GitHub mesajı: ${body.githubMessage}`);
+    if (body.details?.environment) {
+      const env = body.details.environment;
+      diagnostics.push(`Token: ${env.tokenConfigured ? "tanımlı" : "tanımlı değil"}`);
+      diagnostics.push(`Owner: ${env.owner || "tanımlı değil"}`);
+      diagnostics.push(`Repo: ${env.repo || "tanımlı değil"}`);
+      diagnostics.push(`Branch: ${env.branch || "tanımlı değil"}`);
+    }
+    const error = new Error(
+      [body.error || "İşlem tamamlanamadı.", ...diagnostics].join("\n"),
+    );
     error.status = response.status;
     throw error;
   }

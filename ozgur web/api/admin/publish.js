@@ -7,7 +7,12 @@ import {
   verifyIndexContact,
   verifyPublishedContact,
 } from "../_lib/contact.js";
-import { commitFiles, readCommitFiles, readFiles } from "../_lib/github.js";
+import {
+  commitFiles,
+  readCommitFiles,
+  readFiles,
+  validateGithubAccess,
+} from "../_lib/github.js";
 import { assertSameOrigin, handleError, json, methodNotAllowed, readJson } from "../_lib/http.js";
 
 export default async function handler(req, res) {
@@ -24,6 +29,16 @@ export default async function handler(req, res) {
     }
 
     const contact = normalizeContact(payload.contact || {});
+    await validateGithubAccess();
+    console.info("[admin/publish] Normalize edilmiş iletişim verisi", {
+      phone: contact.phone,
+      phoneHref: contact.phoneHref,
+      whatsapp: contact.whatsapp,
+      whatsappHref: contact.whatsappHref,
+      email: contact.email,
+      emailHref: contact.emailHref,
+      address: contact.address,
+    });
     const currentFiles = await readFiles(HTML_FILES);
     const updatedFiles = Object.fromEntries(
       Object.entries(currentFiles).map(([path, html]) => [path, updateContactBlock(html, contact)]),

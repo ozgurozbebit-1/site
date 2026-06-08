@@ -1,5 +1,6 @@
 export const CONTACT_START = "<!-- SITE_CONTACT_START -->";
 export const CONTACT_END = "<!-- SITE_CONTACT_END -->";
+const PLACEHOLDER_PATTERN = /g(?:ü|u)ncelleniyor/gi;
 
 export const HTML_FILES = [
   "index.html",
@@ -215,6 +216,22 @@ function updateVisibility(html, key, visible) {
   });
 }
 
+function replaceLegacyPlaceholders(html, contact) {
+  return html
+    .replace(
+      /href="tel:\+?g(?:ü|u)ncelleniyor"/gi,
+      `href="${escapeAttribute(contact.phoneHref)}"`,
+    )
+    .replace(
+      /href="mailto:g(?:ü|u)ncelleniyor\?subject=Randevu%20Talebi"/gi,
+      `href="${escapeAttribute(contact.emailAppointmentHref)}"`,
+    )
+    .replace(
+      /href="mailto:g(?:ü|u)ncelleniyor"/gi,
+      `href="${escapeAttribute(contact.emailHref)}"`,
+    );
+}
+
 function updateStructuredData(html, contact) {
   return html.replace(
     /<script type="application\/ld\+json">([\s\S]*?)<\/script>/g,
@@ -252,34 +269,42 @@ function updateStructuredData(html, contact) {
 }
 
 export function applyContactToMarkup(html, contact) {
+  const normalized = normalizeContact(contact);
   const hrefs = {
-    phone: contact.phoneHref,
-    whatsapp: contact.whatsappHref,
-    email: contact.emailHref,
-    emailAppointment: contact.emailAppointmentHref,
-    instagram: contact.instagram,
-    linkedin: contact.linkedin,
+    phone: normalized.phoneHref,
+    whatsapp: normalized.whatsappHref,
+    email: normalized.emailHref,
+    emailAppointment: normalized.emailAppointmentHref,
+    instagram: normalized.instagram,
+    linkedin: normalized.linkedin,
   };
   const texts = {
-    phone: contact.phone,
-    whatsapp: contact.whatsapp,
-    email: contact.email,
-    address: contact.address,
+    phone: normalized.phone,
+    whatsapp: normalized.whatsapp,
+    email: normalized.email,
+    address: normalized.address,
   };
 
-  let next = ensureFooterContact(html);
+  let next = replaceLegacyPlaceholders(ensureFooterContact(html), normalized);
   for (const [key, href] of Object.entries(hrefs)) next = updateHref(next, key, href);
   for (const [key, text] of Object.entries(texts)) next = updateText(next, key, text);
   for (const key of ["whatsapp", "instagram", "linkedin"]) {
     next = updateVisibility(next, key, Boolean(hrefs[key]));
   }
-  return updateStructuredData(next, contact);
+  return updateStructuredData(next, normalized);
 }
 
 export function verifyPublishedContact(files, contact) {
   const failures = [];
 
   for (const [path, html] of Object.entries(files)) {
+    const placeholders = html.match(PLACEHOLDER_PATTERN);
+    PLACEHOLDER_PATTERN.lastIndex = 0;
+    if (placeholders?.length) {
+      failures.push(`${path}: "güncelleniyor" placeholder'ı kaldı`);
+      continue;
+    }
+
     const requiredValues = [
       contact.phone,
       contact.phoneHref,
@@ -311,10 +336,30 @@ export function verifyPublishedContact(files, contact) {
 }
 
 export function verifyIndexContact(html, contact) {
-  const visiblePhone = `data-contact-text="phone" href="${escapeAttribute(contact.phoneHref)}">${escapeText(contact.phone)}</a>`;
-  const visibleEmail = `data-contact-text="email" href="${escapeAttribute(contact.emailHref)}">${escapeText(contact.email)}</a>`;
+  const normalized = normalizeContact(contact);
+  const phoneHref = escapeRegExp(escapeAttribute(normalized.phoneHref));
+  const phoneText = escapeRegExp(escapeText(normalized.phone));
+  const emailHref = escapeRegExp(escapeAttribute(normalized.emailHref));
+  const emailText = escapeRegExp(escapeText(normalized.email));
+  const visiblePhone = new RegExp(
+    `<a(?=[^>]*data-contact-text="phone")(?=[^>]*href="${phoneHref}")[^>]*>${phoneText}<\\/a>`,
+    "i",
+  );
+  const visibleEmail = new RegExp(
+    `<a(?=[^>]*data-contact-text="email")(?=[^>]*href="${emailHref}")[^>]*>${emailText}<\\/a>`,
+    "i",
+  );
 
-  if (!html.includes(visiblePhone) || !html.includes(visibleEmail)) {
+  PLACEHOLDER_PATTERN.lastIndex = 0;
+  if (PLACEHOLDER_PATTERN.test(html)) {
+    PLACEHOLDER_PATTERN.lastIndex = 0;
+    const error = new Error('index.html içinde "güncelleniyor" placeholder değeri kaldı.');
+    error.statusCode = 500;
+    throw error;
+  }
+  PLACEHOLDER_PATTERN.lastIndex = 0;
+
+  if (!visiblePhone.test(html) || !visibleEmail.test(html)) {
     const error = new Error("index.html içinde yeni telefon ve e-posta görünür alanlarda doğrulanamadı.");
     error.statusCode = 500;
     throw error;
@@ -324,17 +369,22 @@ export function verifyIndexContact(html, contact) {
 }
 
 export function updateContactBlock(html, contact) {
-  const block = contactBlock(contact);
+  const normalized = normalizeContact(contact);
+  const block = contactBlock(normalized);
   const start = html.indexOf(CONTACT_START);
   const end = html.indexOf(CONTACT_END);
 
   if (start !== -1 && end !== -1 && end > start) {
     return applyContactToMarkup(
       `${html.slice(0, start)}${block}${html.slice(end + CONTACT_END.length)}`,
-      contact,
+      normalized,
     );
   }
 
   return applyContactToMarkup(html.replace("</head>", `${block}
-  </head>`), contact);
+  </head>`), normalized);
+}
+
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
