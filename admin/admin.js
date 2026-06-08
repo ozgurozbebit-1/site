@@ -17,12 +17,38 @@ const resultFiles = document.querySelector("[data-result-files]");
 const resultCommitLink = document.querySelector("[data-result-commit-link]");
 const resultVercelLink = document.querySelector("[data-result-vercel-link]");
 const resultProductionLink = document.querySelector("[data-result-production-link]");
+const homeEditor = document.querySelector("[data-home-editor]");
+const homeForm = document.querySelector("[data-home-form]");
+const homeStatus = document.querySelector("[data-home-status]");
+const homePreviewButton = document.querySelector("[data-home-preview-button]");
+const homePublishBox = document.querySelector("[data-home-publish-box]");
+const homePublishButton = document.querySelector("[data-home-publish]");
+const homeConfirmCheckbox = document.querySelector("[data-home-confirm]");
+const homePreviewSummary = document.querySelector("[data-home-preview-summary]");
+const homePublishResult = document.querySelector("[data-home-publish-result]");
+const homeResultSha = document.querySelector("[data-home-result-sha]");
+const homeResultCount = document.querySelector("[data-home-result-count]");
+const homeResultCommitLink = document.querySelector("[data-home-result-commit-link]");
+const homeResultVercelLink = document.querySelector("[data-home-result-vercel-link]");
+const homeResultProductionLink = document.querySelector("[data-home-result-production-link]");
 const toast = document.querySelector("[data-toast]");
 
 let approvedContact = null;
+let approvedHome = null;
 let toastTimer;
 
 const fields = ["phone", "whatsapp", "email", "address", "instagram", "linkedin"];
+const homeFields = [
+  "eyebrow",
+  "heroTitle",
+  "heroDescription",
+  "appointmentButton",
+  "servicesButton",
+  "approachTitle",
+  "approachDescription",
+  "processTitle",
+  "processDescription",
+];
 
 async function api(path, options = {}) {
   const response = await fetch(path, {
@@ -66,6 +92,30 @@ function fillForm(contact) {
   renderPreview(contact);
 }
 
+function getHome() {
+  const formData = new FormData(homeForm);
+  return Object.fromEntries(homeFields.map((field) => [field, formData.get(field) || ""]));
+}
+
+function renderHomePreview(home) {
+  document.querySelector("[data-home-preview-eyebrow]").textContent = home.eyebrow || "";
+  document.querySelector("[data-home-preview-title]").textContent = home.heroTitle || "Hero başlığı";
+  document.querySelector("[data-home-preview-description]").textContent = home.heroDescription || "";
+  document.querySelector("[data-home-preview-appointment]").textContent = home.appointmentButton || "";
+  document.querySelector("[data-home-preview-services]").textContent = home.servicesButton || "";
+  document.querySelector("[data-home-preview-approach-title]").textContent = home.approachTitle || "";
+  document.querySelector("[data-home-preview-approach-description]").textContent = home.approachDescription || "";
+  document.querySelector("[data-home-preview-process-title]").textContent = home.processTitle || "";
+  document.querySelector("[data-home-preview-process-description]").textContent = home.processDescription || "";
+}
+
+function fillHomeForm(home) {
+  for (const field of homeFields) {
+    homeForm.elements[field].value = home[field] || "";
+  }
+  renderHomePreview(home);
+}
+
 function setLink(element, href, text) {
   element.hidden = !href;
   element.removeAttribute("href");
@@ -102,6 +152,14 @@ function resetApproval() {
   statusElement.textContent = "Değişiklik var";
 }
 
+function resetHomeApproval() {
+  approvedHome = null;
+  homePublishBox.hidden = true;
+  homeConfirmCheckbox.checked = false;
+  homePublishButton.disabled = true;
+  homeStatus.textContent = "Değişiklik var";
+}
+
 function renderPublishResult(body) {
   resultSha.textContent = body.commit.sha;
   resultCount.textContent = String(body.updatedFileCount);
@@ -117,6 +175,16 @@ function renderPublishResult(body) {
   resultProductionLink.hidden = !body.productionUrl;
   if (body.productionUrl) resultProductionLink.href = body.productionUrl;
   publishResult.hidden = false;
+}
+
+function renderHomePublishResult(body) {
+  homeResultSha.textContent = body.commit.sha;
+  homeResultCount.textContent = String(body.updatedFileCount);
+  homeResultCommitLink.href = body.commit.githubUrl;
+  homeResultVercelLink.href = body.vercelDeployCheckUrl;
+  homeResultProductionLink.hidden = !body.productionUrl;
+  if (body.productionUrl) homeResultProductionLink.href = body.productionUrl;
+  homePublishResult.hidden = false;
 }
 
 function setBusy(button, busy, busyText, idleText) {
@@ -142,6 +210,7 @@ async function loadContact() {
     logoutButton.hidden = false;
     fillForm(body.contact);
     statusElement.textContent = "GitHub ile güncel";
+    await loadHome();
   } catch (error) {
     if (error.status === 401) {
       loginPanel.hidden = false;
@@ -151,6 +220,13 @@ async function loadContact() {
     }
     showToast(error.message, true);
   }
+}
+
+async function loadHome() {
+  const body = await api("/api/admin/home");
+  fillHomeForm(body.home);
+  homeEditor.hidden = false;
+  homeStatus.textContent = "GitHub ile güncel";
 }
 
 loginForm.addEventListener("submit", async (event) => {
@@ -176,8 +252,10 @@ logoutButton.addEventListener("click", async () => {
     await api("/api/admin/logout", { method: "POST", body: "{}" });
   } finally {
     approvedContact = null;
+    approvedHome = null;
     loginPanel.hidden = false;
     editor.hidden = true;
+    homeEditor.hidden = true;
     logoutButton.hidden = true;
   }
 });
@@ -240,6 +318,60 @@ publishButton.addEventListener("click", async () => {
   } finally {
     setBusy(publishButton, false, "Yayınlanıyor", "Yayınla");
     publishButton.disabled = true;
+  }
+});
+
+homeForm.addEventListener("input", () => {
+  renderHomePreview(getHome());
+  resetHomeApproval();
+});
+
+homeForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  setBusy(homePreviewButton, true, "Kontrol ediliyor", "Önizle");
+  try {
+    const body = await api("/api/admin/home-preview", {
+      method: "POST",
+      body: JSON.stringify({ home: getHome() }),
+    });
+    approvedHome = body.preview;
+    fillHomeForm(body.preview);
+    homePreviewSummary.textContent = body.summary;
+    homePublishBox.hidden = false;
+    homeConfirmCheckbox.checked = false;
+    homePublishButton.disabled = true;
+    homeStatus.textContent = "Önizleme hazır";
+    homePublishBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  } catch (error) {
+    showToast(error.message, true);
+  } finally {
+    setBusy(homePreviewButton, false, "Kontrol ediliyor", "Önizle");
+  }
+});
+
+homeConfirmCheckbox.addEventListener("change", () => {
+  homePublishButton.disabled = !homeConfirmCheckbox.checked || !approvedHome;
+});
+
+homePublishButton.addEventListener("click", async () => {
+  if (!approvedHome || !homeConfirmCheckbox.checked) return;
+  setBusy(homePublishButton, true, "Yayınlanıyor", "Yayınla");
+  try {
+    const body = await api("/api/admin/home-publish", {
+      method: "POST",
+      body: JSON.stringify({ home: approvedHome, confirm: true }),
+    });
+    homeStatus.textContent = `Commit: ${body.commit.shortSha}`;
+    renderHomePublishResult(body);
+    approvedHome = null;
+    homeConfirmCheckbox.checked = false;
+    homePublishBox.hidden = true;
+    showToast(body.message);
+  } catch (error) {
+    showToast(error.message, true);
+  } finally {
+    setBusy(homePublishButton, false, "Yayınlanıyor", "Yayınla");
+    homePublishButton.disabled = true;
   }
 });
 

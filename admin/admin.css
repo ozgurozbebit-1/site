@@ -117,6 +117,10 @@ h2 {
   align-items: start;
 }
 
+.home-editor {
+  margin-top: 28px;
+}
+
 .preview-panel {
   position: sticky;
   top: 20px;
@@ -244,6 +248,47 @@ textarea {
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 999px;
   padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.home-preview {
+  display: grid;
+  gap: 12px;
+  margin-top: 22px;
+  border-radius: 10px;
+  background: var(--paper);
+  padding: 24px;
+}
+
+.home-preview p {
+  margin: 0;
+}
+
+.home-preview strong {
+  margin-top: 8px;
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 20px;
+}
+
+.home-preview hr {
+  width: 100%;
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+
+.preview-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.preview-buttons span {
+  border-radius: 999px;
+  background: var(--sage);
+  padding: 7px 12px;
+  color: #fff;
   font-size: 13px;
   font-weight: 800;
 }

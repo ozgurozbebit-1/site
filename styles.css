@@ -262,6 +262,11 @@ section {
   max-width: 730px;
 }
 
+.section-description {
+  max-width: 560px;
+  color: var(--muted);
+}
+
 .intro {
   display: grid;
   grid-template-columns: minmax(0, 0.9fr) minmax(280px, 1fr);

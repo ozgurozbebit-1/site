@@ -13,7 +13,7 @@
       <header class="admin-header">
         <div>
           <p class="eyebrow">Güvenli yönetim</p>
-          <h1>İletişim bilgileri</h1>
+          <h1>Site yönetimi</h1>
           <p>Değişiklikler önce önizlenir, onaydan sonra GitHub'a tek commit olarak gönderilir.</p>
         </div>
         <button class="quiet-button" type="button" data-logout hidden>Çıkış yap</button>
@@ -125,6 +125,75 @@
               <a data-result-commit-link target="_blank" rel="noreferrer">GitHub commitini aç</a>
               <a data-result-vercel-link target="_blank" rel="noreferrer">Vercel deploylarını kontrol et</a>
               <a data-result-production-link target="_blank" rel="noreferrer" hidden>Canlı siteyi aç</a>
+            </div>
+          </section>
+        </aside>
+      </section>
+
+      <section class="editor home-editor" data-home-editor hidden>
+        <form class="panel form-panel" data-home-form>
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Ana Sayfa</p>
+              <h2>Ana sayfa içerikleri</h2>
+            </div>
+            <span class="status-pill" data-home-status>GitHub'dan okunuyor</span>
+          </div>
+
+          <div class="form-grid">
+            <label><span>Üst küçük başlık</span><input type="text" name="eyebrow" required></label>
+            <label><span>Randevu Al buton metni</span><input type="text" name="appointmentButton" required></label>
+            <label class="wide-field"><span>Ana hero başlığı</span><textarea name="heroTitle" rows="2" required></textarea></label>
+            <label class="wide-field"><span>Hero açıklama metni</span><textarea name="heroDescription" rows="4" required></textarea></label>
+            <label><span>Çalışma Alanları buton metni</span><input type="text" name="servicesButton" required></label>
+            <label class="wide-field"><span>Yaklaşım bölümü başlığı</span><textarea name="approachTitle" rows="2" required></textarea></label>
+            <label class="wide-field"><span>Yaklaşım bölümü açıklaması</span><textarea name="approachDescription" rows="5" required></textarea></label>
+            <label class="wide-field"><span>Süreç bölümü başlığı</span><textarea name="processTitle" rows="2" required></textarea></label>
+            <label class="wide-field"><span>Süreç bölümü açıklaması</span><textarea name="processDescription" rows="4" required></textarea></label>
+          </div>
+
+          <div class="form-actions">
+            <button class="primary-button" type="submit" data-home-preview-button>Önizle</button>
+            <p>Hero, yaklaşım, süreç ve ana sayfa SEO alanları birlikte güncellenir.</p>
+          </div>
+        </form>
+
+        <aside class="panel preview-panel">
+          <div class="panel-heading">
+            <div><p class="eyebrow">Ana Sayfa Önizleme</p><h2 data-home-preview-title>Hero başlığı</h2></div>
+          </div>
+          <div class="home-preview">
+            <p class="eyebrow" data-home-preview-eyebrow></p>
+            <p data-home-preview-description></p>
+            <div class="preview-buttons"><span data-home-preview-appointment></span><span data-home-preview-services></span></div>
+            <hr>
+            <strong data-home-preview-approach-title></strong>
+            <p data-home-preview-approach-description></p>
+            <strong data-home-preview-process-title></strong>
+            <p data-home-preview-process-description></p>
+          </div>
+
+          <div class="publish-box" data-home-publish-box hidden>
+            <p data-home-preview-summary></p>
+            <label class="confirm-row">
+              <input type="checkbox" data-home-confirm>
+              <span>Önizlemeyi kontrol ettim ve ana sayfa metinlerini yayınlamak istiyorum.</span>
+            </label>
+            <button class="publish-button" type="button" data-home-publish disabled>Yayınla</button>
+            <p class="publish-note">index.html GitHub'a commit edilir ve commit sonrası yeniden doğrulanır.</p>
+          </div>
+
+          <section class="publish-result" data-home-publish-result hidden>
+            <p class="eyebrow">Yayın sonucu</p>
+            <h2>Ana sayfa commit edildi</h2>
+            <dl>
+              <div><dt>Commit SHA</dt><dd><code data-home-result-sha></code></dd></div>
+              <div><dt>Güncellenen dosya</dt><dd data-home-result-count></dd></div>
+            </dl>
+            <div class="result-links">
+              <a data-home-result-commit-link target="_blank" rel="noreferrer">GitHub commitini aç</a>
+              <a data-home-result-vercel-link target="_blank" rel="noreferrer">Vercel deploylarını kontrol et</a>
+              <a data-home-result-production-link target="_blank" rel="noreferrer" hidden>Canlı siteyi aç</a>
             </div>
           </section>
         </aside>
